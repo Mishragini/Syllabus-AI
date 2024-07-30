@@ -14,7 +14,8 @@
     "next": "14.2.5",
     "pdfjs-dist": "^4.5.136",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-to-pdf": "^1.0.1"
   },
   "devDependencies": {
     "@types/node": "^20",

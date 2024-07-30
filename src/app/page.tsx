@@ -3,12 +3,13 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { extractTextFromPdf } from "@/lib/pdfUtils";
 import { ChangeEvent, useEffect, useState } from "react";
 import { callToAiApi } from '@/lib/apiCall';
+import { usePDF } from 'react-to-pdf';
 
 export default function Home() {
   const [pdfFile, setPdfFile] = useState<null | File>(null);
   const [loading, setLoading] = useState(false);
   const [responseText, setResponseText] = useState('');
-
+  const { toPDF, targetRef } = usePDF({ filename: 'note.pdf' })
   useEffect(() => {
     pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
       'pdfjs-dist/build/pdf.worker.mjs',
@@ -46,6 +47,8 @@ export default function Home() {
     setLoading(false);
   };
 
+
+
   return (
     <div>
       <h1>PDF Text Extractor</h1>
@@ -53,7 +56,12 @@ export default function Home() {
       <button onClick={handleSubmit} disabled={!pdfFile || loading}>
         {loading ? 'Processing...' : 'Submit'}
       </button>
-      <div className='text-white'>{responseText}</div>
+      {responseText && (
+        <>
+          <button onClick={() => toPDF()}>Download PDF</button>
+          <div ref={targetRef} className='text-red-500'>{responseText}</div>
+        </>
+      )}
     </div>
   );
 }
