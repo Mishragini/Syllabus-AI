@@ -1,8 +1,8 @@
-'use client'
+'use client';
 import * as pdfjsLib from 'pdfjs-dist';
-
 import { extractTextFromPdf } from "@/lib/pdfUtils";
 import { ChangeEvent, useEffect, useState } from "react";
+import { callToAiApi } from '@/lib/apiCall';
 
 export default function Home() {
   const [pdfFile, setPdfFile] = useState<null | File>(null);
@@ -22,34 +22,38 @@ export default function Home() {
     }
   };
 
-  function sliceText(text: string, size: number) {
+  const sliceText = (text: string, size: number) => {
     const slices = [];
     for (let i = 0; i < text.length; i += size) {
       slices.push(text.slice(i, i + size));
     }
     return slices;
-  }
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
     if (!pdfFile) return;
     const text = await extractTextFromPdf(URL.createObjectURL(pdfFile));
-    const textSlices = sliceText(text, 1000); // Adjust slice size as needed
+    const textSlices = sliceText(text, 1000);
+    const initialPrompt = "I am about to share a long document with you in several parts. Please generate concise and coherent notes for each part, ensuring key points and important details are highlighted.";
+    await callToAiApi(initialPrompt);
     const responses = await Promise.all(textSlices.map(async (slice) => {
-      //api call to an ai 
+      const response = await callToAiApi(slice);
+      return response;
     }));
     const combinedResponse = responses.join('\n');
     setResponseText(combinedResponse);
-    //generating pdf
     setLoading(false);
-  }
+  };
 
   return (
     <div>
       <h1>PDF Text Extractor</h1>
       <input type="file" onChange={handleFileChange} />
-      <button onClick={handleSubmit} disabled={!pdfFile || loading}>{loading ? 'Proceesing...' : 'Submit'}</button>
-      <div>{responseText}</div>
+      <button onClick={handleSubmit} disabled={!pdfFile || loading}>
+        {loading ? 'Processing...' : 'Submit'}
+      </button>
+      <div className='text-white'>{responseText}</div>
     </div>
   );
 }
